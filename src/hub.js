@@ -518,6 +518,7 @@ function handleHubChannelJoined(entryManager, hubChannel, messageDispatch, data)
     hubChannel.updateScene(entry.url);
   });
 
+  console.log("adding processMediaLoaded event listener!");
   scene.addEventListener("model-loaded", ({ detail: { model } }) => {
     if (model.parent.el.components["media-loader"]) {
       processMediaLoaded(model);

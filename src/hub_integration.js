@@ -1,6 +1,7 @@
 import "./components/test_component";
 
 export function processMediaLoaded(model) {
+  console.log("calling processMediaLoaded!!");
   if (model.parent.el.components["media-loader"]) {
     const mediaEl = model.parent.el;
     switch (mediaEl.components["media-loader"].attrValue.src) {
