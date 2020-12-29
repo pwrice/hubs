@@ -14,6 +14,7 @@ AFRAME.registerComponent("test-component", {
     const new_asset = document.createElement("img");
     new_asset.setAttribute("id", "threeDPhoto"); // Create a unique id for asset
     new_asset.setAttribute("src", proxyImageUrl);
+    new_asset.setAttribute("crossorigin", "anonymous");
 
     new_asset.addEventListener("load", (evt) => {
       console.log("image loaded");
