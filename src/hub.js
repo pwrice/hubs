@@ -165,6 +165,8 @@ import "./gltf-component-mappings";
 import { App } from "./App";
 import { platformUnsupported } from "./support";
 
+import { processMediaLoaded, updateNetworkSchemas } from "./hub_integration";
+
 window.APP = new App();
 window.APP.RENDER_ORDER = {
   HUD_BACKGROUND: 1,
@@ -514,6 +516,12 @@ function handleHubChannelJoined(entryManager, hubChannel, messageDispatch, data)
     if (!hubChannel.can("update_hub")) return;
 
     hubChannel.updateScene(entry.url);
+  });
+
+  scene.addEventListener("model-loaded", ({ detail: { model } }) => {
+    if (model.parent.el.components["media-loader"]) {
+      processMediaLoaded(model);
+    }
   });
 
   // Handle request for user gesture
@@ -987,6 +995,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   registerNetworkSchemas();
+  updateNetworkSchemas();
 
   remountUI({
     authChannel,
