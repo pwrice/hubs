@@ -84,9 +84,11 @@ const hasButtonComponent = (function() {
     "text-button",
     "pin-networked-object-button",
     "mic-button",
-    "inspect-button"
+    "inspect-button",
+    "photo-thumbnail" // PWR MOD
   ];
   return function hasButtonComponent(components) {
+    // console.log(components);
     for (let i = 0; i < BUTTON_COMPONENT_NAMES.length; i++) {
       if (components[BUTTON_COMPONENT_NAMES[i]]) {
         return true;

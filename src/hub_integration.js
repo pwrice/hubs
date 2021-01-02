@@ -1,4 +1,4 @@
-import "./components/test_component";
+import "./components/photo-library";
 
 export function processMediaLoaded(model) {
   console.log("calling processMediaLoaded!!");
@@ -9,7 +9,7 @@ export function processMediaLoaded(model) {
       case "https://poly.google.com/view/eke7qcu_FR2":
         console.log("found the hamburger hash!!");
         NAF.utils.getNetworkedEntity(mediaEl).then(networkedEl => {
-          networkedEl.setAttribute("test-component", { custom_data: "foo" });
+          networkedEl.setAttribute("photo-library", { custom_data: "foo" });
         });
         break;
     }
@@ -17,8 +17,8 @@ export function processMediaLoaded(model) {
 }
 
 export function updateNetworkSchemas() {
-  if (NAF.schemas.schemaDict["#interactable-media"].components.indexOf("test-component") <= 0) {
-    NAF.schemas.schemaDict["#interactable-media"].components.push("test-component");
+  if (NAF.schemas.schemaDict["#interactable-media"].components.indexOf("photo-library") <= 0) {
+    NAF.schemas.schemaDict["#interactable-media"].components.push("photo-library");
   }
 }
 
@@ -39,6 +39,6 @@ var ham = getFirstElementFromHash("eke7qcu_FR2");
 NAF.utils.getNetworkedEntity(ham).then(networkedEl => {
   const mine = NAF.utils.isMine(networkedEl)
   if (!mine) var owned = NAF.utils.takeOwnership(networkedEl)
-  networkedEl.setAttribute("test-component", { custom_data: {"one": "two"} });
+  networkedEl.setAttribute("photo-library", { custom_data: {"one": "two"} });
 });
  */

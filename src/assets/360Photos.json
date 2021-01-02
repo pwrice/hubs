@@ -1,0 +1,24 @@
+{
+  "photos": [
+    {
+      "url": "https://pwricemedia.s3-us-west-2.amazonaws.com/deck_360.jpg",
+      "thumb_url": "https://pwricemedia.s3-us-west-2.amazonaws.com/deck_360_thumb.jpg"
+    },
+        {
+      "url": "https://pwricemedia.s3-us-west-2.amazonaws.com/railroad_grade_1.jpg",
+      "thumb_url": "https://pwricemedia.s3-us-west-2.amazonaws.com/railroad_grade_1_thumb.jpg"
+    },
+        {
+      "url": "https://pwricemedia.s3-us-west-2.amazonaws.com/railroad_grade_2.jpg",
+      "thumb_url": "https://pwricemedia.s3-us-west-2.amazonaws.com/railroad_grade_2_thumb.jpg"
+    },
+        {
+      "url": "https://pwricemedia.s3-us-west-2.amazonaws.com/railroad_grade_3.jpg",
+      "thumb_url": "https://pwricemedia.s3-us-west-2.amazonaws.com/railroad_grade_3_thumb.jpg"
+    },
+        {
+      "url": "https://pwricemedia.s3-us-west-2.amazonaws.com/larkspur.jpeg",
+      "thumb_url": "https://pwricemedia.s3-us-west-2.amazonaws.com/larkspur_thumb.jpeg"
+    }
+  ]
+}
