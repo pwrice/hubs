@@ -5,7 +5,8 @@ import "./photo-thumbnail";
 const AFRAME = window.AFRAME;
 AFRAME.registerComponent("photo-library", {
   schema: {
-    custom_data: { type: "string", default: "Hello, World!" }
+    currentPhotoId: { type: "number", default: -1 },
+    showThumbnails: { type: "boolean", default: false }
   },
   init: function() {
     console.log("initializing photo libary component");
@@ -18,14 +19,30 @@ AFRAME.registerComponent("photo-library", {
     this.el.appendChild(this._createShowHideButton());
 
     this.photoLibrary = {};
-    this.currentPhotoId = null;
+    this.photoLibraryLoaded = false;
+    this.currentPhotoId = -1;
+
+    try {
+      NAF.utils
+        .getNetworkedEntity(this.el)
+        .then(networkedEl => {
+          this.networkedEl = networkedEl;
+        })
+        .catch(() => {}); //ignore exception, entity might not be networked
+    } catch (e) {
+      // NAF may not exist on scene landing page
+    }
 
     this._loadPhotoData();
   },
   update: function(oldData) {
-    if (this.data.custom_data !== oldData.custom_data) {
-      console.log("photo-library date update:");
-      console.log(this.data.custom_data);
+    if (this.data.currentPhotoId != oldData.currentPhotoId) {
+      console.log("updating current photo to: " + this.data.currentPhotoId);
+      this._setPhoto(this.data.currentPhotoId);
+    }
+    if (this.data.showThumbnails != oldData.showThumbnails) {
+      console.log("updating showThumbnails: " + this.data.showThumbnails);
+      this._setShowHideThumbnails(this.data.showThumbnails);
     }
   },
   // private helper methods
@@ -81,9 +98,15 @@ AFRAME.registerComponent("photo-library", {
         id: ind,
         url: p.url,
         thumb_url: p.thumb_url,
-        index: ind
+        index: ind,
+        thumb_el: null
       };
     });
+
+    this.photoLibraryLoaded = true;
+    if (this.currentPhotoId) {
+      this._setPhoto(this.currentPhotoId);
+    }
 
     this._generateThumbnails();
   },
@@ -106,6 +129,7 @@ AFRAME.registerComponent("photo-library", {
       const thumbEl = this._createThumbnailSphere(photoId);
       const sceneEl = document.querySelector("a-scene:first-of-type");
       sceneEl.appendChild(thumbEl);
+      this.photoLibrary[photoId].thumb_el = thumbEl;
     });
 
     // Append the new video to the a-assets, where a-assets id="assets-id"
@@ -120,7 +144,7 @@ AFRAME.registerComponent("photo-library", {
     // TODO - arrange these more neutrally for all viewers - maybe in a circle?
     const xLoc = -numPhotos / 2 + photoObj.index;
     const thumbnailAssetId = "thumbnailAsset" + photoId;
-    thumbEl.setAttribute("position", `${xLoc} 2 0`);
+    thumbEl.setAttribute("position", `${xLoc} 3 0`);
     thumbEl.setAttribute("geometry", "primitive: sphere; radius: 0.4; segmentsWidth: 10; segmentsHeight: 10");
     thumbEl.setAttribute("material", `src: #${thumbnailAssetId}; shader: flat; color: #fff; side: back`);
     thumbEl.setAttribute("shadow", "cast: true;");
@@ -129,6 +153,7 @@ AFRAME.registerComponent("photo-library", {
     thumbEl.setAttribute("tags", "singleActionButton: true;");
     thumbEl.setAttribute("is-remote-hover-target", "");
     thumbEl.setAttribute("photo-thumbnail", "");
+    thumbEl.setAttribute("visible", false);
 
     AFRAME.scenes[0].systems["hubs-systems"].cursorTargettingSystem.targets.push(thumbEl);
     thumbEl.object3D.addEventListener("interact", () => {
@@ -136,12 +161,12 @@ AFRAME.registerComponent("photo-library", {
       this._photoThumbnailClicked(photoId);
     });
     thumbEl.object3D.addEventListener("hovered", () => {
-      console.log("Hover thumbnail! " + photoId);
+      // console.log("Hover thumbnail! " + photoId);
       // TODO: add hover over effect
       // Set network state for hover (so others can see which photo is highlighted)
     });
     thumbEl.object3D.addEventListener("unhovered", () => {
-      console.log("Unhover thumbnail! " + photoId);
+      // console.log("Unhover thumbnail! " + photoId);
       // TODO: remov hover over effect
       // remove network state for hover effect
     });
@@ -149,13 +174,24 @@ AFRAME.registerComponent("photo-library", {
     return thumbEl;
   },
   _setPhoto: function(photoId) {
-    const prevPhotoId = this.currentPhotoId;
+    if (!this.photoLibraryLoaded) return;
+
+    const photoObj = this.photoLibrary[photoId];
+
+    if (photoId == -1 || !photoObj) {
+      this.photoSphereEl.setAttribute("visible", false);
+      return;
+    }
+
+    const prevPhotoId = (this.currentPhotoId != photoId) ? this.currentPhotoId : null;
     this.currentPhotoId = photoId;
 
     const assetsEl = document.querySelector("a-assets:first-of-type");
-    const photoAssetId = "photoAsset"+photoId;
-    const photoObj = this.photoLibrary[photoId];
+    const photoAssetId = "photoAsset" + photoId;
     const proxyImageUrl = proxiedUrlFor(photoObj.url);
+
+    // set loading state
+    photoObj.thumb_el.components["photo-thumbnail"].showLoader();
 
     const newAsset = document.createElement("img");
     newAsset.setAttribute("id", photoAssetId); // Create a unique id for asset
@@ -165,6 +201,9 @@ AFRAME.registerComponent("photo-library", {
       console.log("360 image component: image loaded");
       this.photoSphereEl.setAttribute("material", `src: #${photoAssetId}; shader: flat; color: #fff; side: back;`);
       this.photoSphereEl.setAttribute("visible", true);
+
+      // hide loader
+      photoObj.thumb_el.components["photo-thumbnail"].hideLoader();
 
       if (prevPhotoId) {
         const prevPhotoAssetId = "photoAsset" + prevPhotoId;
@@ -176,10 +215,26 @@ AFRAME.registerComponent("photo-library", {
     });
     assetsEl.appendChild(newAsset);
   },
+  _setShowHideThumbnails: function(show) {
+    if (this.photoLibrary) {
+      for (const [photoId, photoObj] of Object.entries(this.photoLibrary)) {
+        photoObj.thumb_el.setAttribute("visible", show);
+      }
+    }
+  },
   _photoThumbnailClicked: function(photoId) {
-    this._setPhoto(photoId);
+    const mine = NAF.utils.isMine(this.networkedEl);
+    if (!mine) NAF.utils.takeOwnership(this.networkedEl);
+    if (NAF.utils.isMine(this.networkedEl)) {
+      this.el.setAttribute("photo-library", "currentPhotoId", photoId);
+    }
   },
   _showHideButtonClicked: function() {
-    // TODO - toggle thumbnail show/hide state
+    console.log("_showHideButtonClicked");
+    const mine = NAF.utils.isMine(this.networkedEl);
+    if (!mine) NAF.utils.takeOwnership(this.networkedEl);
+    if (NAF.utils.isMine(this.networkedEl)) {
+      this.el.setAttribute("photo-library", "showThumbnails", !this.data.showThumbnails);
+    }
   }
 });

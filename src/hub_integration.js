@@ -7,9 +7,9 @@ export function processMediaLoaded(model) {
     switch (mediaEl.components["media-loader"].attrValue.src) {
       // Hamburger
       case "https://poly.google.com/view/eke7qcu_FR2":
-        console.log("found the hamburger hash!!");
+        console.log("found the hamburger hash!! instantiating photo library");
         NAF.utils.getNetworkedEntity(mediaEl).then(networkedEl => {
-          networkedEl.setAttribute("photo-library", { custom_data: "foo" });
+          networkedEl.setAttribute("photo-library", {});
         });
         break;
     }
